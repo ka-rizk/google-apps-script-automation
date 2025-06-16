@@ -1,0 +1,296 @@
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('Create Slides')
+    .addItem('Create New Merged Slides for KAMAD', 'createCombinedGoogleSlidesKAMAD')
+    .addItem('Create New Merged Slides for KAUR TU', 'createCombinedGoogleSlidesKAURTU')
+    .addToUi();
+}
+
+function deleteTriggersWithFunctionName(functionName) {
+  const triggers = ScriptApp.getProjectTriggers();
+  for (const trigger of triggers) {
+    if (trigger.getHandlerFunction() === functionName) {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  }
+}
+
+// KAMAD
+const MAX_ROWS_PER_EXECUTION = 5;
+function createCombinedGoogleSlidesKAMAD() {
+  const MERGED_SLIDES_ID = '1teCc68skxTXYMA6FFmV2XNk0nja7vyILPX-tGldrUMY'; 
+
+  const googleSlidesTemplate = DriveApp.getFileById('1fSQc6aWt16AJTNHluJnvmtlkJinaTEDnmlPp2hhpQkE');
+  const destinationFolder = DriveApp.getFolderById('1aHTJIaM2ImhJi9q3eL0OIM1isr3dqfR0');
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('KAMAD');
+  const rows = sheet.getDataRange().getValues();
+  
+  const mergedPresentation = SlidesApp.openById(MERGED_SLIDES_ID);
+
+  const timezone = Session.getScriptTimeZone();
+
+  let startIndex = Number(PropertiesService.getScriptProperties().getProperty('lastProcessedIndex')) || 1;
+  const endIndex = Math.min(startIndex + MAX_ROWS_PER_EXECUTION, rows.length);
+
+  for (let index = startIndex; index < endIndex; index++) {
+    const row = rows[index];
+    if (index === 0 || row[58]) continue;
+
+    const sekolahBertugas = row[4];
+
+    try {
+      const copy = googleSlidesTemplate.makeCopy(`KAMAD ${sekolahBertugas}`, destinationFolder);
+      const presentation = SlidesApp.openById(copy.getId());
+      const slide = presentation.getSlides()[0];
+
+      // Tambahkan teks tanggal
+      const textBox = slide.insertTextBox(`Last update: 31/05/2025`);
+      textBox.setLeft(16);
+      textBox.setTop(20);
+      textBox.setWidth(200);
+      textBox.setHeight(20);
+      const textStyle = textBox.getText().getTextStyle();
+      textStyle.setFontSize(9).setFontFamily('Arial').setBold(true).setItalic(true);
+
+      // Ganti placeholder
+      const formatDate = (val) => val ? Utilities.formatDate(new Date(val), timezone, "dd/MM/yyyy") : '';
+      slide.replaceAllText('{{NO}}', row[0]);
+      slide.replaceAllText('{{NIP}}', row[1]);
+      slide.replaceAllText('{{NAMA}}', row[16] ? row[2] + ', ' : row[2]);
+      slide.replaceAllText('{{JABATAN}}', row[3]);
+      slide.replaceAllText('{{SEKOLAH_BERTUGAS}}', row[4]);
+      slide.replaceAllText('{{JENIS_KELAMIN}}', row[5]);
+      slide.replaceAllText('{{NO_HP}}', row[6]);
+      slide.replaceAllText('{{ALAMAT}}', row[7]);
+      slide.replaceAllText('{{TEMPAT_LAHIR}}', row[8]);
+      slide.replaceAllText('{{TGL_LAHIR}}', formatDate(row[9]));
+      slide.replaceAllText('{{USIA}}', row[10]);
+      slide.replaceAllText('{{PENSIUN}}', formatDate(row[11]));
+      slide.replaceAllText('{{SELESAI}}', row[12] || '');
+      slide.replaceAllText('{{SISA_MASA_KERJA}}', row[13] || '');
+      slide.replaceAllText('{{PENDIDIKAN_TERAKHIR}}', row[14]);
+      slide.replaceAllText('{{G_DEP}}', row[15] ? row[15] + ' ' : '');
+      slide.replaceAllText('{{G_BEL}}', row[16]);
+      slide.replaceAllText('{{THN_LULUS}}', row[17]);
+      slide.replaceAllText('{{JURUSAN}}', row[18]);
+      slide.replaceAllText('{{MAPEL_KELAS}}', row[19]);
+      slide.replaceAllText('{{ALAMAT_SEKOLAH}}', row[20]);
+      slide.replaceAllText('{{TMT_PEGAWAI}}', formatDate(row[21]));
+      slide.replaceAllText('{{TMT_GOLONGAN_CPNS}}', formatDate(row[23]));
+      slide.replaceAllText('{{TMT_GOLONGAN_PNS}}', formatDate(row[23]));
+      slide.replaceAllText('{{PANGKAT}}', row[24]);
+      slide.replaceAllText('{{GOLONGAN}}', row[25]);
+      slide.replaceAllText('{{TMT_GOLONGAN}}', formatDate(row[26]));
+      slide.replaceAllText('{{TMT_KEPSEK}}', formatDate(row[27]));
+      slide.replaceAllText('{{TMT_KEPSEK_AWAL}}', formatDate(row[28]));
+      slide.replaceAllText('{{STATUS}}', row[29]);
+      slide.replaceAllText('{{PERIODE_1}}', row[30]);
+      slide.replaceAllText('{{TMT_P_1}}', formatDate(row[31]));
+      slide.replaceAllText('{{MASA_1}}', row[32]);
+      slide.replaceAllText('{{PERIODE_2}}', row[33]);
+      slide.replaceAllText('{{TMT_P_2}}', formatDate(row[34]));
+      slide.replaceAllText('{{MASA_2}}', row[35]);
+      slide.replaceAllText('{{PERIODE_3}}', row[36]);
+      slide.replaceAllText('{{TMT_P_3}}', formatDate(row[37]));
+      slide.replaceAllText('{{MASA_3}}', row[38]);
+      slide.replaceAllText('{{PERIODE_4}}', row[39]);
+      slide.replaceAllText('{{TMT_P_4}}', formatDate(row[40]));
+      slide.replaceAllText('{{MASA_4}}', row[41]);
+      slide.replaceAllText('{{PERIODE_5}}', row[42]);
+      slide.replaceAllText('{{TMT_P_5}}', formatDate(row[43]));
+      slide.replaceAllText('{{MASA_5}}', row[44]);
+      slide.replaceAllText('{{PERIODE_6}}', row[45]);
+      slide.replaceAllText('{{TMT_P_6}}', formatDate(row[46]));
+      slide.replaceAllText('{{MASA_6}}', row[47]);
+      slide.replaceAllText('{{MASA_JABATAN}}', row[48]);
+
+      // Sisipkan foto
+      const photoUrl = row[49];
+      if (photoUrl) {
+        try {
+          const fileId = photoUrl.split('/d/')[1].split('/')[0];
+          const file = DriveApp.getFileById(fileId);
+          const imageBlob = file.getBlob();
+          const image = slide.insertImage(imageBlob);
+          image.setWidth(110.565);
+          image.setHeight(147.42);
+          const slideWidth = presentation.getPageWidth();
+          image.setLeft(slideWidth - 17 - image.getWidth());
+          image.setTop(90);
+        } catch (e) {
+          Logger.log('Error inserting image: ' + e.message);
+        }
+      }
+
+      // Tambahkan slide ke presentasi gabungan
+      mergedPresentation.insertSlide(1, slide); 
+      presentation.saveAndClose();
+
+      // Link slide ke sheet
+      sheet.getRange(index + 1, 51).setValue(copy.getUrl());
+
+      Logger.log(`Finished row ${index + 1}`);
+    } catch (e) {
+      Logger.log('Error processing row ' + (index + 1) + ': ' + e.message);
+    }
+  }
+
+  mergedPresentation.saveAndClose();
+  PropertiesService.getScriptProperties().setProperty('lastProcessedIndex', endIndex);
+
+  if (endIndex < rows.length) {
+    ScriptApp.newTrigger('createCombinedGoogleSlidesKAMAD')
+      .timeBased()
+      .after(60 * 1000)
+      .create();
+  } else {
+    PropertiesService.getScriptProperties().deleteProperty('lastProcessedIndex');
+    deleteTriggersWithFunctionName('createCombinedGoogleSlidesKAMAD');
+    Logger.log("✅ Semua data selesai diproses.");
+    
+  }
+}
+
+
+
+
+
+
+// KAUR TU
+function createCombinedGoogleSlidesKAURTU() {
+  // GANTI DENGAN ID PRESENTASI GOOGLE SLIDES KAUR TU YANG SUDAH ADA
+  const MERGED_SLIDES_ID_KAURTU = '16GAFF7eQUVrzxfSkNErnhZmPmPu7PWu7xxugY-vOSWI'; 
+
+  const googleSlidesTemplate = DriveApp.getFileById('1fSQc6aWt16AJTNHluJnvmtlkJinaTEDnmlPp2hhpQkE');
+  const destinationFolder = DriveApp.getFolderById('19geLcmsX-1VerIMrvgeZlCQjQ_EoQCSc');
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('KAUR TU');
+  const rows = sheet.getDataRange().getValues();
+  
+  // Buka presentasi yang sudah ada menggunakan ID yang diberikan
+  const mergedPresentation = SlidesApp.openById(MERGED_SLIDES_ID_KAURTU);
+
+  const timezone = Session.getScriptTimeZone();
+
+  let startIndex = Number(PropertiesService.getScriptProperties().getProperty('lastProcessedIndex')) || 1;
+  const endIndex = Math.min(startIndex + MAX_ROWS_PER_EXECUTION, rows.length);
+
+  for (let index = startIndex; index < endIndex; index++) {
+    const row = rows[index];
+    if (index === 0 || row[58]) continue;
+
+    const sekolahBertugas = row[4];
+
+    try {
+      const copy = googleSlidesTemplate.makeCopy(`KAUR TU ${sekolahBertugas}`, destinationFolder);
+      const presentation = SlidesApp.openById(copy.getId());
+      const slide = presentation.getSlides()[0];
+
+      // Tambahkan teks tanggal
+      const textBox = slide.insertTextBox(`Last update: 31/05/2025`);
+      textBox.setLeft(16);
+      textBox.setTop(20);
+      textBox.setWidth(200);
+      textBox.setHeight(20);
+      const textStyle = textBox.getText().getTextStyle();
+      textStyle.setFontSize(9).setFontFamily('Arial').setBold(true).setItalic(true);
+
+      // Ganti placeholder
+      const formatDate = (val) => val ? Utilities.formatDate(new Date(val), timezone, "dd/MM/yyyy") : '';
+      slide.replaceAllText('{{NO}}', row[0]);
+      slide.replaceAllText('{{NIP}}', row[1]);
+      slide.replaceAllText('{{NAMA}}', row[16] ? row[2] + ', ' : row[2]);
+      slide.replaceAllText('{{JABATAN}}', row[3]);
+      slide.replaceAllText('{{SEKOLAH_BERTUGAS}}', row[4]);
+      slide.replaceAllText('{{JENIS_KELAMIN}}', row[5]);
+      slide.replaceAllText('{{NO_HP}}', row[6]);
+      slide.replaceAllText('{{ALAMAT}}', row[7]);
+      slide.replaceAllText('{{TEMPAT_LAHIR}}', row[8]);
+      slide.replaceAllText('{{TGL_LAHIR}}', formatDate(row[9]));
+      slide.replaceAllText('{{USIA}}', row[10]);
+      slide.replaceAllText('{{PENSIUN}}', formatDate(row[11]));
+      slide.replaceAllText('{{SELESAI}}', row[12] || '');
+      slide.replaceAllText('{{SISA_MASA_KERJA}}', row[13] || '');
+      slide.replaceAllText('{{PENDIDIKAN_TERAKHIR}}', row[14]);
+      slide.replaceAllText('{{G_DEP}}', row[15] ? row[15] + ' ' : '');
+      slide.replaceAllText('{{G_BEL}}', row[16]);
+      slide.replaceAllText('{{THN_LULUS}}', row[17]);
+      slide.replaceAllText('{{JURUSAN}}', row[18]);
+      slide.replaceAllText('{{MAPEL_KELAS}}', row[19]);
+      slide.replaceAllText('{{ALAMAT_SEKOLAH}}', row[20]);
+      slide.replaceAllText('{{TMT_PEGAWAI}}', formatDate(row[21]));
+      slide.replaceAllText('{{TMT_GOLONGAN_CPNS}}', formatDate(row[23]));
+      slide.replaceAllText('{{TMT_GOLONGAN_PNS}}', formatDate(row[23]));
+      slide.replaceAllText('{{PANGKAT}}', row[24]);
+      slide.replaceAllText('{{GOLONGAN}}', row[25]);
+      slide.replaceAllText('{{TMT_GOLONGAN}}', formatDate(row[26]));
+      slide.replaceAllText('{{TMT_KEPSEK}}', formatDate(row[27]));
+      slide.replaceAllText('{{TMT_KEPSEK_AWAL}}', formatDate(row[28]));
+      slide.replaceAllText('{{STATUS}}', row[29]);
+      slide.replaceAllText('{{PERIODE_1}}', row[30]);
+      slide.replaceAllText('{{TMT_P_1}}', formatDate(row[31]));
+      slide.replaceAllText('{{MASA_1}}', row[32]);
+      slide.replaceAllText('{{PERIODE_2}}', row[33]);
+      slide.replaceAllText('{{TMT_P_2}}', formatDate(row[34]));
+      slide.replaceAllText('{{MASA_2}}', row[35]);
+      slide.replaceAllText('{{PERIODE_3}}', row[36]);
+      slide.replaceAllText('{{TMT_P_3}}', formatDate(row[37]));
+      slide.replaceAllText('{{MASA_3}}', row[38]);
+      slide.replaceAllText('{{PERIODE_4}}', row[39]);
+      slide.replaceAllText('{{TMT_P_4}}', formatDate(row[40]));
+      slide.replaceAllText('{{MASA_4}}', row[41]);
+      slide.replaceAllText('{{PERIODE_5}}', row[42]);
+      slide.replaceAllText('{{TMT_P_5}}', formatDate(row[43]));
+      slide.replaceAllText('{{MASA_5}}', row[44]);
+      slide.replaceAllText('{{PERIODE_6}}', row[45]);
+      slide.replaceAllText('{{TMT_P_6}}', formatDate(row[46]));
+      slide.replaceAllText('{{MASA_6}}', row[47]);
+      slide.replaceAllText('{{MASA_JABATAN}}', row[48]);
+
+      // Sisipkan foto
+      const photoUrl = row[49];
+      if (photoUrl) {
+        try {
+          const fileId = photoUrl.split('/d/')[1].split('/')[0];
+          const file = DriveApp.getFileById(fileId);
+          const imageBlob = file.getBlob();
+          const image = slide.insertImage(imageBlob);
+          image.setWidth(110.565);
+          image.setHeight(147.42);
+          const slideWidth = presentation.getPageWidth();
+          image.setLeft(slideWidth - 17 - image.getWidth());
+          image.setTop(90);
+        } catch (e) {
+          Logger.log('Error inserting image: ' + e.message);
+        }
+      }
+
+      // Tambahkan slide ke presentasi gabungan
+      mergedPresentation.insertSlide(1, slide); // Ganti dengan baris ini
+      presentation.saveAndClose();
+
+      // Tulis link slide ke sheet
+      sheet.getRange(index + 1, 51).setValue(copy.getUrl());
+
+      Logger.log(`Finished row ${index + 1}`);
+    } catch (e) {
+      Logger.log('Error processing row ' + (index + 1) + ': ' + e.message);
+    }
+  }
+
+  mergedPresentation.saveAndClose();
+  PropertiesService.getScriptProperties().setProperty('lastProcessedIndex', endIndex);
+
+  if (endIndex < rows.length) {
+    ScriptApp.newTrigger('createCombinedGoogleSlidesKAURTU')
+      .timeBased()
+      .after(60 * 1000)
+      .create();
+  } else {
+    PropertiesService.getScriptProperties().deleteProperty('lastProcessedIndex');
+    deleteTriggersWithFunctionName('createCombinedGoogleSlidesKAURTU');
+    Logger.log("✅ Semua data selesai diproses.");
+    
+    // Tidak perlu menghapus ID merged karena kita selalu menggunakan yang sama
+    // PropertiesService.getScriptProperties().deleteProperty('mergedPresentationId'); 
+  }
+}
